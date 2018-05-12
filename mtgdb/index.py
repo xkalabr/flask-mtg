@@ -27,7 +27,8 @@ def show_card(cid):
 	retval = {'cid': cid}
 	sql = (
 		'select c.name, manacost, c.type, rarity, ctext, ftext, p, t, l, imgpath, setcode, '
-		'cardsets.name from cards as c,cardsets where cid=\'' + cid + '\' and code=setcode')
+		'cardsets.name from cards as c,cardsets where cid=\'' + cid + '\' and code=setcode'
+	)
 	result = engine.execute(sql)
 	for row in result:
 		retval['name'] = row[0]
@@ -46,4 +47,22 @@ def show_card(cid):
 			retval['imgpath'] =  ''
 		retval['setcode'] = row[10]
 		retval['setname'] = row[11]
+	return jsonify(retval)
+
+@app.route("/cardsearch/<string:term>")
+def card_search(term):
+	retval = []
+	sql = (
+		'select cid,c.name,rarity,setcode,s.name from cards as c, cardsets as s where '
+		'code=setcode and c.name like "%' + term + '%"'
+	)
+	result = engine.execute(sql)
+	for row in result:
+		entry = {}
+		entry['cid'] = row[0]
+		entry['name'] = row[1]
+		entry['rarity'] = row[2]
+		entry['setcode'] = row[3]
+		entry['setname'] = row[4]
+		retval.append(entry)
 	return jsonify(retval)
