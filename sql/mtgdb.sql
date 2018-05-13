@@ -14,7 +14,6 @@ drop table if exists inventory;
 create table inventory (
   id int unsigned not null auto_increment,
   cid varchar(40) not null,
-  cost decimal(8,2),
   price decimal(8,2),
   cond tinyint(2) unsigned,
   indeck tinyint(1),

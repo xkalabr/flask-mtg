@@ -49,6 +49,12 @@ def show_card(cid):
 		retval['setname'] = row[11]
 	return jsonify(retval)
 
+@app.route('/card/<string:id>', methods=['DELETE'])
+def delete_card(id):
+	sql = 'delete from inventory where id=' + id
+	engine.execute(sql)
+	return ''
+
 @app.route("/cardsearch/<string:term>")
 def card_search(term):
 	retval = []
@@ -80,7 +86,7 @@ def card_inventory(cid):
 		entry = {}
 		entry['id'] = row[0]
 		entry['name'] = row[1]
-		entry['price'] = row[2]
+		entry['price'] = str(row[2])
 		entry['cond'] = row[3]
 		indeck = row[4]
 		isfoil = row[5]
@@ -97,8 +103,8 @@ def set_inventory(id):
 	retval = []
 	sql = (
 		'select count(*),ANY_VALUE(c.cid),c.name,ANY_VALUE(c.type),ANY_VALUE(rarity),'
-		'ANY_VALUE(price) from inventory as i,cardsets as cs,cards as c where '
-		'cs.id=\'' + id + '\' and setcode=code and i.cid=c.cid group by c.name '
+		'ANY_VALUE(price),ANY_VALUE(code) from inventory as i,cardsets,cards as c where '
+		'code=\'' + id + '\' and setcode=code and i.cid=c.cid group by c.name '
 		'order by c.name'
 	)
 	result = engine.execute(sql)
@@ -109,6 +115,7 @@ def set_inventory(id):
 		entry['name'] = row[2]
 		entry['type'] = row[3]
 		entry['rarity'] = row[4]
-		entry['price'] = row[5]
+		entry['price'] = str(row[5])
+		entry['setcode'] = row[6]
 		retval.append(entry)
 	return jsonify(retval)
