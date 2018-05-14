@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from sqlalchemy import create_engine
+from mtgdb.model.inventory import Inventory, InventorySchema
 app = Flask(__name__)
 engine = create_engine('mysql+mysqlconnector://mtgadmin:blackL0tus@localhost/mtg')
 
@@ -53,7 +54,40 @@ def show_card(cid):
 def delete_card(id):
 	sql = 'delete from inventory where id=' + id
 	engine.execute(sql)
-	return ''
+	return '', 204
+
+@app.route('/card/', methods=['POST'])
+def add_card():
+	card = InventorySchema().load(request.get_json())
+	indeck = 0
+	isfoil = 0
+	if card.data.indeck:
+		indeck = 1
+	if card.data.isfoil:
+		isfoil = 1
+	sql = (
+		'insert into inventory (cid,price,cond,indeck,isfoil) values (\'' + card.data.cid + '\''
+		',' + str(card.data.price) + ',' + str(card.data.cond) + ',' + str(indeck) + ','
+		+ str(isfoil) + ')'
+	)
+	engine.execute(sql)
+	return "", 204
+
+@app.route('/card/<string:id>', methods=['PUT'])
+def update_card(id):
+	card = InventorySchema().load(request.get_json())
+	indeck = 0
+	isfoil = 0
+	if card.data.indeck:
+		indeck = 1
+	if card.data.isfoil:
+		isfoil = 1
+	sql = (
+		'update inventory set price=' + str(card.data.price) + ',cond=' + str(card.data.cond)
+		 + ',indeck=' + str(indeck) + ',isfoil=' + str(isfoil) + ' where id=' + id
+	)
+	engine.execute(sql)
+	return "", 204	
 
 @app.route("/cardsearch/<string:term>")
 def card_search(term):
@@ -102,10 +136,10 @@ def card_inventory(cid):
 def set_inventory(id):
 	retval = []
 	sql = (
-		'select count(*),ANY_VALUE(c.cid),c.name,ANY_VALUE(c.type),ANY_VALUE(rarity),'
-		'ANY_VALUE(price),ANY_VALUE(code) from inventory as i,cardsets,cards as c where '
-		'code=\'' + id + '\' and setcode=code and i.cid=c.cid group by c.name '
-		'order by c.name'
+		'select count(i.id),ANY_VALUE(c.cid),c.name,ANY_VALUE(c.type),ANY_VALUE(rarity),'
+		'ANY_VALUE(price),ANY_VALUE(code) from cards as c join cardsets on setcode=code left '
+		'join inventory as i on i.cid=c.cid where code=\'' + id + '\' group by c.name order '
+		'by c.name'
 	)
 	result = engine.execute(sql)
 	for row in result:
@@ -115,7 +149,17 @@ def set_inventory(id):
 		entry['name'] = row[2]
 		entry['type'] = row[3]
 		entry['rarity'] = row[4]
-		entry['price'] = str(row[5])
+		if row[5] is None:
+			entry['price'] = '0.00'
+		else:
+			entry['price'] = str(row[5])
 		entry['setcode'] = row[6]
+		res = engine.execute('select color from colors where cid=\'' + row[1] + '\'')
+		e = []
+		for r in res:
+			e.append(r[0])
+		if len(e) < 1:
+			e.append('None')
+		entry['color'] = e
 		retval.append(entry)
 	return jsonify(retval)
