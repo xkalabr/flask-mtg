@@ -23,31 +23,33 @@ def list_sets():
 		retval.append({'code': row[0], 'name': row[1]})
 	return jsonify(retval)
 
+@app.route("/cardconditions")
+def list_conds():
+	retval = []
+	result = engine.execute('select id,condext from cardcondition order by id')
+	for row in result:
+		retval.append({'id': row[0], 'val': row[1]})
+	return jsonify(retval)
+
 @app.route("/card/<string:cid>")
 def show_card(cid):
 	retval = {'cid': cid}
 	sql = (
-		'select c.name, manacost, c.type, rarity, ctext, ftext, p, t, l, imgpath, setcode, '
-		'cardsets.name from cards as c,cardsets where cid=\'' + cid + '\' and code=setcode'
+		'select c.name, c.type, rarity, imgpath, setcode, cardsets.name from cards as c,'
+		'cardsets where cid=\'' + cid + '\' and code=setcode'
 	)
 	result = engine.execute(sql)
 	for row in result:
 		retval['name'] = row[0]
-		retval['manacost'] = row[1]
-		retval['type'] = row[2]
-		retval['rarity'] = row[3]
-		retval['ctext'] = row[4]
-		retval['ftext'] = row[5]
-		retval['p'] = row[6]
-		retval['t'] = row[7]
-		retval['l'] = row[8]
-		if row[9] is not None:
-			ipath = row[9].split('/')
+		retval['type'] = row[1]
+		retval['rarity'] = row[2]
+		if row[3] is not None:
+			ipath = row[3].split('/')
 			retval['imgpath'] = ipath[3]
 		else:
 			retval['imgpath'] =  ''
-		retval['setcode'] = row[10]
-		retval['setname'] = row[11]
+		retval['setcode'] = row[4]
+		retval['setname'] = row[5]
 	return jsonify(retval)
 
 @app.route('/card/<string:id>', methods=['DELETE'])
