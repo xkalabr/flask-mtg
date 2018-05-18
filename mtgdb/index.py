@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS, cross_origin
 from sqlalchemy import create_engine
 from mtgdb.model.inventory import Inventory, InventorySchema
 app = Flask(__name__)
+CORS(app)
 engine = create_engine('mysql+mysqlconnector://mtgadmin:blackL0tus@localhost/mtg')
 
 IMAGE_BASE_PATH = '../mtg/images/'
@@ -67,6 +69,8 @@ def add_card():
 		indeck = 1
 	if card.data.isfoil:
 		isfoil = 1
+	if card.data.price == '':
+		card.data.price = '0.00'
 	sql = (
 		'insert into inventory (cid,price,cond,indeck,isfoil) values (\'' + card.data.cid + '\''
 		',' + str(card.data.price) + ',' + str(card.data.cond) + ',' + str(indeck) + ','
@@ -113,7 +117,7 @@ def card_search(term):
 def card_inventory(cid):
 	retval = {'stock': [], 'foil': [], 'deck': []}
 	sql = (
-		'select i.id,name,price,condval,indeck,isfoil from inventory as i,cardcondition '
+		'select i.id,name,price,condval,cc.id,indeck,isfoil from inventory as i,cardcondition '
 		'as cc,cards as c where i.cid=\'' + cid + '\' and cond=cc.id and i.cid=c.cid '
 		'order by cc.id'
 	)
@@ -124,8 +128,9 @@ def card_inventory(cid):
 		entry['name'] = row[1]
 		entry['price'] = str(row[2])
 		entry['cond'] = row[3]
-		indeck = row[4]
-		isfoil = row[5]
+		entry['condcode'] = row[4]
+		indeck = row[5]
+		isfoil = row[6]
 		if indeck:
 			retval['deck'].append(entry)
 		elif isfoil:
