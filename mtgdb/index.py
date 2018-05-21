@@ -100,7 +100,7 @@ def card_search(term):
 	retval = []
 	sql = (
 		'select cid,c.name,rarity,setcode,s.name from cards as c, cardsets as s where '
-		'code=setcode and c.name like "%' + term + '%"'
+		'code=setcode and c.name like "%' + term + '%" order by c.name,s.name'
 	)
 	result = engine.execute(sql)
 	for row in result:
@@ -119,7 +119,7 @@ def card_inventory(cid):
 	sql = (
 		'select i.id,name,price,condval,cc.id,indeck,isfoil from inventory as i,cardcondition '
 		'as cc,cards as c where i.cid=\'' + cid + '\' and cond=cc.id and i.cid=c.cid '
-		'order by cc.id'
+		'order by cc.id asc,i.id desc'
 	)
 	result = engine.execute(sql)
 	for row in result:
