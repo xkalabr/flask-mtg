@@ -143,9 +143,9 @@ def card_inventory(cid):
 def set_inventory(id):
 	retval = []
 	sql = (
-		'select count(i.id),ANY_VALUE(c.cid),c.name,ANY_VALUE(c.type),ANY_VALUE(rarity),'
+		'select count(i.id),c.cid,c.name,ANY_VALUE(c.type),ANY_VALUE(rarity),'
 		'ANY_VALUE(price),ANY_VALUE(code) from cards as c join cardsets on setcode=code left '
-		'join inventory as i on i.cid=c.cid where code=\'' + id + '\' group by c.name order '
+		'join inventory as i on i.cid=c.cid where code=\'' + id + '\' group by c.cid order '
 		'by c.name'
 	)
 	result = engine.execute(sql)
