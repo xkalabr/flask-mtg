@@ -53,7 +53,6 @@ create table cards (
   t varchar(6),
   l varchar(6),
   mid int,
-  imagename varchar(200),
   imgpath varchar(2000),
   setcode varchar(8) not null,
   primary key(id),
