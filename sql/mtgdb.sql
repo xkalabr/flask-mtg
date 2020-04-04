@@ -14,7 +14,6 @@ drop table if exists inventory;
 create table inventory (
   id int unsigned not null auto_increment,
   cid varchar(40) not null,
-  price decimal(8,2),
   cond tinyint(2) unsigned,
   indeck tinyint(1),
   isfoil tinyint(1),
@@ -37,8 +36,7 @@ insert into cardcondition values(50,'DM','Damaged');
 
 drop table if exists cards;
 create table cards (
-  id int unsigned not null auto_increment,
-  cid varchar(40) not null,
+  cid varchar(40) not null primary key,
   layout varchar(20),
   name varchar(150) not null,
   manacost varchar(50),
@@ -55,11 +53,20 @@ create table cards (
   mid int,
   imgpath varchar(2000),
   setcode varchar(8) not null,
-  primary key(id),
   index name_i(name),
   index cmc_i(cmc),
-  index setcode_i(setcode),
-  index cid(cid)
+  index setcode_i(setcode)
+) Engine=InnoDB DEFAULT CHARSET=utf8;
+
+drop table if exists prices;
+create table prices (
+  id int unsigned not null auto_increment,
+  cid varchar(40) not null,
+  pdate date,
+  rp decimal(8,2),
+  fp decimal(8,2),
+  primary key(id),
+  index cid_i(cid)
 ) Engine=InnoDB DEFAULT CHARSET=utf8;
 
 drop table if exists rulings;

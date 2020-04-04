@@ -6,8 +6,8 @@ import mysql.connector
 cnx = mysql.connector.connect(user='mtgadmin', password='blackL0tus',host='127.0.0.1', database='mtg')
 
 
-counter_order = ['sets','cards','altnames','colors','colorids','types','supertypes','subtypes','variations','rulings']
-counters = {'sets': {'dispName': 'Sets', 'counter': 0, 'table': 'cardsets'}, 'cards':  {'dispName': 'Cards', 'counter': 0, 'table': 'cards'}, 'altnames': {'dispName': 'AltNames', 'counter': 0, 'table': 'altnames'}, 'colors': {'dispName': 'Colors', 'counter': 0, 'table': 'colors'}, 'colorids': {'dispName': 'ColorIds', 'counter': 0, 'table': 'colorids'}, 'types': {'dispName': 'Types', 'counter': 0, 'table': 'cardtypes'}, 'supertypes': {'dispName': 'SuperTypes', 'counter': 0, 'table': 'cardsupertypes'}, 'subtypes': {'dispName': 'SubTypes', 'counter': 0, 'table': 'cardsubtypes'}, 'variations': {'dispName': 'Variations', 'counter': 0, 'table': 'cardvariations'}, 'rulings': {'dispName': 'Rulings', 'counter': 0, 'table': 'rulings'} } 
+counter_order = ['sets','cards','altnames','colors','colorids','types','supertypes','subtypes','variations','rulings', 'prices']
+counters = {'sets': {'dispName': 'Sets', 'counter': 0, 'table': 'cardsets'}, 'cards':  {'dispName': 'Cards', 'counter': 0, 'table': 'cards'}, 'altnames': {'dispName': 'AltNames', 'counter': 0, 'table': 'altnames'}, 'colors': {'dispName': 'Colors', 'counter': 0, 'table': 'colors'}, 'colorids': {'dispName': 'ColorIds', 'counter': 0, 'table': 'colorids'}, 'types': {'dispName': 'Types', 'counter': 0, 'table': 'cardtypes'}, 'supertypes': {'dispName': 'SuperTypes', 'counter': 0, 'table': 'cardsupertypes'}, 'subtypes': {'dispName': 'SubTypes', 'counter': 0, 'table': 'cardsubtypes'}, 'variations': {'dispName': 'Variations', 'counter': 0, 'table': 'cardvariations'}, 'rulings': {'dispName': 'Rulings', 'counter': 0, 'table': 'rulings'}, 'prices': {'dispName': 'Prices', 'counter': 0, 'table': 'prices'} } 
 
 with open('AllPrintings.json') as data_file:
 	data = json.load(data_file)
@@ -24,9 +24,9 @@ sets = list(unzipped[0])
 
 
 for scode in sets:
+	if data[scode].get('isOnlineOnly'):
+		continue
 	if data[scode].get('type') in ['core', 'duel_deck', 'expansion', 'masters']:
-		if data[scode].get('isOnlineOnly'):
-			continue
 		counters['sets']['counter'] += 1
 		cursor = cnx.cursor()
 		s_name = data[scode].get('name', '***BAD DATA***').replace('"', '\\"')
@@ -52,6 +52,7 @@ for scode in sets:
 			ca_types = c.get('types', '')
 			ca_supertypes = c.get('supertypes', '')
 			ca_subtypes = c.get('subtypes', '')
+			ca_prices = c.get('prices','')
 			c_rarity = c.get('rarity')
 			c_text = c.get('text', '').replace('"', '\\"')
 			c_flavor = c.get('flavor', '').replace('"', '\\"')
@@ -119,6 +120,17 @@ for scode in sets:
 					sql = 'INSERT INTO rulings (id, cid, rdate, rtext) VALUES (null,"' + c_id + '","' + myDate + '","' + myText + '")'
 					#print('RULINGS: ' + sql)
 					cursor.execute(sql)
+
+				reg = {}
+				for val in sorted(ca_prices):
+					if val == 'paper':
+						for k in ca_prices[val].keys():
+							reg[k] = str(ca_prices[val][k])
+					if val == 'paperFoil':
+						for k in sorted(ca_prices[val].keys()):
+							counters['prices']['counter'] += 1
+							sql = 'INSERT INTO prices (id, cid, pdate, rp, fp) VALUES (null,"' + c_id + '","' + k + '","' + reg[k] + '","' + str(ca_prices[val][k]) + '")'
+							cursor.execute(sql)
 
 				cursor.close()
 				cnx.commit()

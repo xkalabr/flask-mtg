@@ -20,7 +20,7 @@ for row in rows:
 	file_extension = imghdr.what(None, data)
 	print('File type is: ' + str(file_extension))
 	if file_extension is None:
-		file_extension = jpeg
+		file_extension = 'jpeg'
 		print('Unknown file type.  Defaulting to jpeg')
 	file_name = row[0]+'.'+file_extension
 	pri_dir = file_name[0]

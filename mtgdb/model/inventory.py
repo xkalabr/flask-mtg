@@ -4,8 +4,8 @@ from marshmallow import Schema, fields, post_load
 class Inventory():
   def __init__(self, cid, price, cond, indeck, isfoil):
     self.cid = cid
-    self.price = price
     self.cond = cond
+    self.price = price
     self.indeck = indeck
     self.isfoil = isfoil
 
@@ -15,8 +15,8 @@ class Inventory():
 
 class InventorySchema(Schema):
   cid = fields.Str()
-  price = fields.Str()
   cond = fields.Number()
+  price = fields.Str()
   indeck = fields.Boolean()
   isfoil = fields.Boolean()
 
